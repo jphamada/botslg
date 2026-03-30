@@ -27,7 +27,7 @@ export default function LoginPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#0070D7] text-white shadow-xl shadow-blue-500/20 mb-6">
                         <Bot size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">JournoNode</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">GaceBot</h1>
                     <p className="text-slate-500 mt-2">Plataforma de Asistentes Periodísticos</p>
                 </div>
 

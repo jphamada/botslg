@@ -25,9 +25,9 @@ export default async function Dashboard() {
         <div className="p-4">
           <div className="flex items-center gap-2 mb-8 px-2">
             <div className="w-8 h-8 rounded bg-[#0070D7] flex items-center justify-center text-white font-bold">
-              JN
+              GB
             </div>
-            <span className="font-semibold text-xl tracking-tight">JournoNode</span>
+            <span className="font-semibold text-xl tracking-tight">GaceBot</span>
           </div>
 
           <nav className="space-y-1">
