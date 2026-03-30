@@ -9,7 +9,7 @@ type Message = {
     content: string;
 };
 
-export function ChatInterface({ botId, isEmbed = false }: { botId: string, isEmbed?: boolean }) {
+export function ChatInterface({ botId, botName, botDescription, isEmbed = false }: { botId: string, botName?: string, botDescription?: string, isEmbed?: boolean }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -89,8 +89,8 @@ export function ChatInterface({ botId, isEmbed = false }: { botId: string, isEmb
                     <Bot size={18} />
                 </div>
                 <div>
-                    <h3 className="font-semibold text-slate-900 text-sm">Simulador de Chat</h3>
-                    <p className="text-xs text-slate-500">Prueba el conocimiento del bot (RAG activo)</p>
+                    <h3 className="font-semibold text-slate-900 text-sm">{botName || "Asistente JN"}</h3>
+                    <p className="text-xs text-slate-500">{botDescription || "Responde basándose en el contexto."}</p>
                 </div>
             </div>
 
@@ -100,7 +100,6 @@ export function ChatInterface({ botId, isEmbed = false }: { botId: string, isEmb
                     <div className="h-full flex flex-col items-center justify-center text-slate-400">
                         <Bot size={48} className="mb-4 opacity-20" />
                         <p className="text-sm">Envía un mensaje para comenzar la conversación.</p>
-                        <p className="text-xs mt-2">El bot usará el modelo Llama de Hugging Face y tus vectores.</p>
                     </div>
                 ) : (
                     messages.map((m) => (
@@ -129,7 +128,7 @@ export function ChatInterface({ botId, isEmbed = false }: { botId: string, isEmb
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         disabled={loading}
-                        placeholder="Pregúntale algo a tu asistente..."
+                        placeholder="Hacé una pregunta"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0070D7]/20 focus:border-[#0070D7] disabled:opacity-50 transition-all font-sans"
                     />
                     <button

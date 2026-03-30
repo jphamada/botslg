@@ -25,11 +25,12 @@ export default async function BotDashboard({ params }: { params: Promise<{ id: s
     // Fetch bot details from Supabase
     const { data: bot } = await supabase
         .from('bots')
-        .select('name')
+        .select('name, description')
         .eq('id', id)
         .single();
 
     const botName = bot?.name || "Asistente Desconocido";
+    const botDescription = bot?.description || "Responde basándose en el contexto.";
 
     return (
         <div className="flex h-screen bg-[#F9FAFB] text-slate-900 font-sans">
@@ -141,7 +142,7 @@ export default async function BotDashboard({ params }: { params: Promise<{ id: s
                             <div className="mb-6">
                                 <h2 className="text-xl font-bold text-slate-900">Probar Asistente</h2>
                             </div>
-                            <ChatInterface botId={id} />
+                            <ChatInterface botId={id} botName={botName} botDescription={botDescription} />
                         </div>
                     </div>
                 </div>
