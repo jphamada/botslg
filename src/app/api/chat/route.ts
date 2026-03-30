@@ -94,10 +94,35 @@ Si la respuesta no se encuentra en el contexto, indícalo de forma honesta. No i
         // 7. Convert custom async generator to a ReadableStream for the standard API
         const readableStream = new ReadableStream({
             async start(controller) {
+                let fullResponse = "";
                 for await (const chunk of stream) {
                     const text = chunk.choices[0]?.delta?.content || "";
+                    fullResponse += text;
                     controller.enqueue(new TextEncoder().encode(text));
                 }
+                
+                // After stream is finished, save assistant message to history
+                // We'll also need to save the user message if a chatId is provided
+                const { chatId } = await req.clone().json();
+                if (chatId) {
+                    // 1. Save User Message
+                    await supabase.from('messages').insert({
+                        chat_id: chatId,
+                        role: 'user',
+                        content: userQuery
+                    });
+
+                    // 2. Save Assistant Message
+                    await supabase.from('messages').insert({
+                        chat_id: chatId,
+                        role: 'assistant',
+                        content: fullResponse
+                    });
+
+                    // 3. Update chat timestamp for better sorting
+                    await supabase.from('chats').update({ updated_at: new Date().toISOString() }).eq('id', chatId);
+                }
+
                 controller.close();
             }
         });

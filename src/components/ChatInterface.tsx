@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
+import { createChat } from "@/app/actions/chat";
 
 type Message = {
     id: string;
@@ -13,6 +14,7 @@ export function ChatInterface({ botId, botName, botDescription, isEmbed = false 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [chatId, setChatId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom of chat
@@ -24,18 +26,27 @@ export function ChatInterface({ botId, botName, botDescription, isEmbed = false 
         e.preventDefault();
         if (!input.trim() || loading) return;
 
+        let currentChatId = chatId;
         const userMessage: Message = { id: Date.now().toString(), role: "user", content: input };
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
         setLoading(true);
 
         try {
+            // If this is the first message of the session, create a Chat record
+            if (!currentChatId) {
+                const newChat = await createChat(botId, input.substring(0, 50));
+                currentChatId = newChat.id;
+                setChatId(currentChatId);
+            }
+
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     messages: [...messages, userMessage],
-                    botId
+                    botId,
+                    chatId: currentChatId
                 }),
             });
 

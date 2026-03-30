@@ -7,6 +7,7 @@ import { DeleteSourceButton } from "@/components/DeleteSourceButton";
 import { EmbedCode } from "@/components/EmbedCode";
 import { BotSettingsForm } from "@/components/BotSettingsForm";
 import { RefreshSourceButton } from "@/components/RefreshSourceButton";
+import { ChatHistoryList } from "@/components/ChatHistoryList";
 
 import { supabase } from "@/lib/supabase";
 
@@ -20,6 +21,8 @@ export default async function BotDashboard({
     let { id } = await params;
     const { tab } = await searchParams;
     const isSettings = tab === 'settings';
+    const isHistory = tab === 'history';
+    const isInference = !isSettings && !isHistory;
 
     // Backward compatibility para caches de NextJS en el frontend
     if (id === 'asistente-politica') id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
@@ -59,11 +62,11 @@ export default async function BotDashboard({
                         <div className="pt-2 pb-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                             Gestionar Bot
                         </div>
-                        <Link href={`/bot/${id}`} className={`flex items-center gap-3 px-3 py-2 rounded-md font-medium text-sm transition-colors ${!isSettings ? 'bg-[#0070D7]/10 text-[#0070D7]' : 'hover:bg-slate-50 text-slate-600'}`}>
+                        <Link href={`/bot/${id}`} className={`flex items-center gap-3 px-3 py-2 rounded-md font-medium text-sm transition-colors ${isInference ? 'bg-[#0070D7]/10 text-[#0070D7]' : 'hover:bg-slate-50 text-slate-600'}`}>
                             <Database size={18} />
                             Fuentes e Ingesta
                         </Link>
-                        <Link href="#" className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
+                        <Link href={`/bot/${id}?tab=history`} className={`flex items-center gap-3 px-3 py-2 rounded-md font-medium text-sm transition-colors ${isHistory ? 'bg-[#0070D7]/10 text-[#0070D7]' : 'hover:bg-slate-50 text-slate-600'}`}>
                             <MessageSquare size={18} />
                             Historial de Chats
                         </Link>
@@ -97,11 +100,12 @@ export default async function BotDashboard({
 
                 {/* Dashboard Body */}
                 <div className="flex-1 overflow-auto p-8">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Lado Izquierdo: Configuración e Ingestas */}
-                        <div className="flex flex-col">
-                            {!isSettings ? (
-                                <>
+                    <div className="max-w-7xl mx-auto flex flex-col">
+                        {/* Tab Switcher Content */}
+                        {isInference ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Lado Izquierdo: Configuración e Ingestas */}
+                                <div className="flex flex-col">
                                     <div className="mb-6">
                                         <h1 className="text-2xl font-bold text-slate-900">Fuentes de Conocimiento</h1>
                                         <p className="text-slate-500 text-sm mt-1">
@@ -157,29 +161,39 @@ export default async function BotDashboard({
                                         )}
                                     </div>
                                     <EmbedCode botId={id} />
-                                </>
-                            ) : (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div className="mb-6">
-                                        <h1 className="text-2xl font-bold text-slate-900">Configuración del Bot</h1>
-                                        <p className="text-slate-500 text-sm mt-1">
-                                            Edita la identidad y el comportamiento de tu asistente.
-                                        </p>
-                                    </div>
-                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                                        <BotSettingsForm bot={bot} />
-                                    </div>
                                 </div>
-                            )}
-                        </div>
 
-                        {/* Lado Derecho: Interfaz de Chat interactiva */}
-                        <div className="flex flex-col h-full">
-                            <div className="mb-6">
-                                <h2 className="text-xl font-bold text-slate-900">Probar Asistente</h2>
+                                {/* Lado Derecho: Interfaz de Chat interactiva */}
+                                <div className="flex flex-col h-full">
+                                    <div className="mb-6">
+                                        <h2 className="text-xl font-bold text-slate-900">Probar Asistente</h2>
+                                    </div>
+                                    <ChatInterface botId={id} botName={botName} botDescription={botDescription} />
+                                </div>
                             </div>
-                            <ChatInterface botId={id} botName={botName} botDescription={botDescription} />
-                        </div>
+                        ) : isHistory ? (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <div className="mb-6">
+                                    <h1 className="text-2xl font-bold text-slate-900">Historial de Chats</h1>
+                                    <p className="text-slate-500 text-sm mt-1">
+                                        Revisa las interacciones pasadas y el conocimiento generado por este bot.
+                                    </p>
+                                </div>
+                                <ChatHistoryList botId={id} />
+                            </div>
+                        ) : (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <div className="mb-6">
+                                    <h1 className="text-2xl font-bold text-slate-900">Configuración del Bot</h1>
+                                    <p className="text-slate-500 text-sm mt-1">
+                                        Edita la identidad y el comportamiento de tu asistente.
+                                    </p>
+                                </div>
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                    <BotSettingsForm bot={bot} />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>
