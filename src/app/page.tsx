@@ -1,6 +1,7 @@
-import { Bot, Plus, Settings, MessageSquare, LayoutDashboard, Database, FileText, Search, ArrowRight, Activity } from "lucide-react";
+import { Bot, Plus, Settings, MessageSquare, LayoutDashboard, Database, FileText, Search, ArrowRight, Activity, LogOut } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { logout } from "@/app/actions/auth";
 
 export default async function Dashboard() {
   // Fetch dynamic stats
@@ -58,13 +59,17 @@ export default async function Dashboard() {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-slate-200">
-          <nav className="space-y-1">
-            <Link href="#" className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
-              <Settings size={18} />
-              Configuración
-            </Link>
-          </nav>
+        <div className="p-4 border-t border-slate-200 space-y-1">
+          <Link href="#" className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
+            <Settings size={18} />
+            Configuración
+          </Link>
+          <form action={logout}>
+            <button type="submit" className="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-50 text-red-600 rounded-md font-medium text-sm transition-colors">
+              <LogOut size={18} />
+              Cerrar Sesión
+            </button>
+          </form>
         </div>
       </aside>
 

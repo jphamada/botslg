@@ -1,5 +1,6 @@
-import { Bot, Settings, Database, MessageSquare, ArrowLeft } from "lucide-react";
+import { Bot, Settings, Database, MessageSquare, ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
+import { logout } from "@/app/actions/auth";
 import { AddSourceForm } from "@/components/AddSourceForm";
 import { ChatInterface } from "@/components/ChatInterface";
 import { DeleteSourceButton } from "@/components/DeleteSourceButton";
@@ -71,6 +72,14 @@ export default async function BotDashboard({
                             Configuración
                         </Link>
                     </nav>
+                </div>
+                <div className="p-4 border-t border-slate-200">
+                    <form action={logout}>
+                        <button type="submit" className="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-50 text-red-600 rounded-md font-medium text-sm transition-colors">
+                            <LogOut size={18} />
+                            Cerrar Sesión
+                        </button>
+                    </form>
                 </div>
             </aside>
 
