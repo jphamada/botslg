@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AddSourceForm } from "@/components/AddSourceForm";
 import { ChatInterface } from "@/components/ChatInterface";
 import { DeleteSourceButton } from "@/components/DeleteSourceButton";
+import { EmbedCode } from "@/components/EmbedCode";
 
 import { supabase } from "@/lib/supabase";
 
@@ -130,6 +131,9 @@ export default async function BotDashboard({ params }: { params: Promise<{ id: s
                                     </div>
                                 )}
                             </div>
+
+                            {/* Embed Section */}
+                            <EmbedCode botId={id} />
                         </div>
 
                         {/* Lado Derecho: Interfaz de Chat interactiva */}

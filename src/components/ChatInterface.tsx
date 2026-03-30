@@ -9,7 +9,7 @@ type Message = {
     content: string;
 };
 
-export function ChatInterface({ botId }: { botId: string }) {
+export function ChatInterface({ botId, isEmbed = false }: { botId: string, isEmbed?: boolean }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -82,7 +82,7 @@ export function ChatInterface({ botId }: { botId: string }) {
     }
 
     return (
-        <div className="flex flex-col h-[600px] border border-slate-200 bg-white rounded-xl shadow-sm overflow-hidden flex-1">
+        <div className={`flex flex-col border border-slate-200 bg-white shadow-sm overflow-hidden flex-1 ${isEmbed ? 'h-screen border-none rounded-none shadow-none' : 'h-[600px] rounded-xl'}`}>
             {/* Chat header */}
             <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-[#0070D7]/10 text-[#0070D7] flex items-center justify-center">
