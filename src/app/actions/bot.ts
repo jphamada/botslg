@@ -30,3 +30,25 @@ export async function createBot(formData: FormData) {
   revalidatePath("/");
   redirect(`/bot/${bot.id}`);
 }
+
+export async function updateBot(id: string, formData: FormData) {
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+  const systemPrompt = formData.get("systemPrompt") as string;
+
+  const { error } = await supabase
+    .from("bots")
+    .update({
+      name,
+      description,
+      system_prompt: systemPrompt,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating bot:", error);
+    throw new Error("No se pudo actualizar el bot");
+  }
+
+  revalidatePath(`/bot/${id}`);
+}
