@@ -1,63 +1,209 @@
-import Image from "next/image";
+import { Bot, Plus, Settings, MessageSquare, LayoutDashboard, Database, FileText, Search, ArrowRight, Activity } from "lucide-react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
-export default function Home() {
+export default async function Dashboard() {
+  // Fetch dynamic stats
+  const { count: botsCount } = await supabase.from('bots').select('*', { count: 'exact', head: true });
+  const { count: sourcesCount } = await supabase.from('sources').select('*', { count: 'exact', head: true });
+  const { count: messagesCount } = await supabase.from('messages').select('*', { count: 'exact', head: true });
+
+  // Fetch list of bots
+  const { data: bots } = await supabase.from('bots').select('*').order('created_at', { ascending: false });
+
+  // Fetch recent activity (latest sources)
+  const { data: recentSources } = await supabase
+    .from('sources')
+    .select('*, bots(name)')
+    .order('created_at', { ascending: false })
+    .limit(5);
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-screen bg-[#F9FAFB] text-slate-900 font-sans">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between">
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-8 px-2">
+            <div className="w-8 h-8 rounded bg-[#0070D7] flex items-center justify-center text-white font-bold">
+              JN
+            </div>
+            <span className="font-semibold text-xl tracking-tight">JournoNode</span>
+          </div>
+
+          <nav className="space-y-1">
+            <Link href="/" className="flex items-center gap-3 px-3 py-2 bg-[#0070D7]/10 text-[#0070D7] rounded-md font-medium text-sm">
+              <LayoutDashboard size={18} />
+              Panel General
+            </Link>
+            <div className="pt-4 pb-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Mis Bots
+            </div>
+            {bots?.map(bot => (
+              <Link key={bot.id} href={`/bot/${bot.id}`} className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
+                <Bot size={18} />
+                {bot.name}
+              </Link>
+            ))}
+
+            <div className="pt-6 pb-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Recursos
+            </div>
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
+              <Database size={18} />
+              Base de Conocimiento
+            </Link>
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
+              <MessageSquare size={18} />
+              Chats e Interacciones
+            </Link>
+          </nav>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="p-4 border-t border-slate-200">
+          <nav className="space-y-1">
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-600 rounded-md font-medium text-sm transition-colors">
+              <Settings size={18} />
+              Configuración
+            </Link>
+          </nav>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
+          <div className="relative w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              placeholder="Buscar bots, fuentes o chats..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0070D7]/20 focus:border-[#0070D7] transition-all"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300"></div>
+              <span className="text-sm font-medium text-slate-700">Periodista</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Body */}
+        <div className="flex-1 overflow-auto p-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Panel General</h1>
+                <p className="text-slate-500 text-sm mt-1">Gestiona tus asistentes virtuales y fuentes de investigación.</p>
+              </div>
+              <Link href="/bot/new" className="flex items-center gap-2 bg-[#0070D7] hover:bg-[#005bb5] text-white px-4 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
+                <Plus size={18} />
+                Crear Nuevo Bot
+              </Link>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-4 text-slate-500 mb-4">
+                  <div className="p-2 bg-blue-50 rounded-lg text-[#0070D7]">
+                    <Bot size={24} />
+                  </div>
+                  <span className="font-medium">Bots Activos</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900">{botsCount || 0}</span>
+                  <span className="text-sm font-medium text-emerald-600">activos</span>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-4 text-slate-500 mb-4">
+                  <div className="p-2 bg-blue-50 rounded-lg text-[#0070D7]">
+                    <Database size={24} />
+                  </div>
+                  <span className="font-medium">Fuentes Ingestadas</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900">{sourcesCount || 0}</span>
+                  <span className="text-sm font-medium text-slate-500">archivos y URLs</span>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-4 text-slate-500 mb-4">
+                  <div className="p-2 bg-blue-50 rounded-lg text-[#0070D7]">
+                    <MessageSquare size={24} />
+                  </div>
+                  <span className="font-medium">Consultas Realizadas</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900">{messagesCount || 0}</span>
+                  <span className="text-sm font-medium text-emerald-600">mensajes</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Manage Bots Grid */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-900">Mis Asistentes</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {bots?.map(bot => (
+                  <Link key={bot.id} href={`/bot/${bot.id}`} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-[#0070D7]/50 hover:shadow-md transition-all group">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex gap-3 items-center">
+                        <div className="w-10 h-10 rounded-lg bg-[#0070D7]/10 text-[#0070D7] flex items-center justify-center">
+                          <Bot size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-900 group-hover:text-[#0070D7] transition-colors">{bot.name}</h4>
+                          <p className="text-xs text-slate-500">{bot.description || 'Sin descripción'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center text-sm font-medium text-[#0070D7]">
+                      Gestionar Bot y Fuentes <ArrowRight size={16} className="ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    </div>
+                  </Link>
+                ))}
+                {bots?.length === 0 && (
+                  <div className="col-span-2 py-12 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                    <p className="text-slate-500 italic">No hay bots creados todavía.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+                <h3 className="font-semibold text-slate-900">Actividad Reciente</h3>
+                <Link href="#" className="text-sm text-[#0070D7] font-medium hover:underline">Ver todo</Link>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {recentSources?.map((source: any) => (
+                  <div key={source.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${source.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
+                      {source.type === 'rss' ? <Activity size={18} /> : <FileText size={18} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate">{source.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Bot: {source.bots?.name || 'Sistema'}</p>
+                    </div>
+                    <div className="text-xs text-slate-400 whitespace-nowrap">
+                      {new Date(source.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+                {(!recentSources || recentSources.length === 0) && (
+                  <div className="px-6 py-8 text-center text-slate-500 text-sm">
+                    No hay actividad reciente.
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
         </div>
       </main>
     </div>
