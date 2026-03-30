@@ -39,6 +39,18 @@ export async function processSource(formData: FormData) {
         throw new Error(`Error creating source record: ${insertError?.message || "Unknown error"}`);
     }
 
+    const { success, error } = await _ingestSourceData(source, botId, textData);
+    
+    if (!success) throw new Error(error);
+
+    revalidatePath(`/bot/${botId}`);
+    return { success: true, sourceId: source.id };
+}
+
+// Internal reusable logic for ingestion and re-indexing
+async function _ingestSourceData(source: any, botId: string, textData?: string) {
+    const { id: sourceId, content_url: url, type } = source;
+
     try {
         let extractedText = "";
 
@@ -65,7 +77,7 @@ export async function processSource(formData: FormData) {
                 return `Title: ${item.title}\nContent: ${item.contentSnippet || item.content}\nLink: ${item.link}`;
             }).join("\n\n");
         } else if (type === "file") {
-            extractedText = textData.trim();
+            extractedText = textData?.trim() || "";
         }
 
         if (!extractedText) {
@@ -91,11 +103,11 @@ export async function processSource(formData: FormData) {
             chunks.map(async (chunk, i) => {
                 const embedding = await embeddings.embedQuery(chunk);
                 return {
-                    id: `${source.id}-chunk-${i}`,
+                    id: `${sourceId}-chunk-${i}`,
                     values: embedding,
                     metadata: {
                         bot_id: botId,
-                        source_id: source.id,
+                        source_id: sourceId,
                         url: url,
                         text: chunk, // Storing for retrieval during querying
                     },
@@ -108,6 +120,9 @@ export async function processSource(formData: FormData) {
         const index = pinecone.Index(indexName);
         const botIndex = index.namespace(botId);
 
+        // Delete old vectors for this source before re-upserting (crucial for re-indexing)
+        await botIndex.deleteMany({ filter: { source_id: sourceId } });
+
         // Split into batches to avoid hitting limits
         const batchSize = 100;
         for (let i = 0; i < vectors.length; i += batchSize) {
@@ -119,9 +134,9 @@ export async function processSource(formData: FormData) {
         await supabase
             .from("sources")
             .update({ status: "completed" })
-            .eq("id", source.id);
+            .eq("id", sourceId);
 
-        return { success: true, sourceId: source.id };
+        return { success: true };
 
     } catch (error: any) {
         console.error("Ingestion error:", error);
@@ -130,10 +145,43 @@ export async function processSource(formData: FormData) {
         await supabase
             .from("sources")
             .update({ status: "error", metadata: { error: String(error) } })
-            .eq("id", source.id);
+            .eq("id", sourceId);
 
-        throw new Error(error.message || "Failed to process source");
+        return { success: false, error: error.message };
     }
+}
+
+export async function reindexSource(sourceId: string, providedBotId: string) {
+    if (!sourceId || !providedBotId) throw new Error("Missing parameters");
+
+    let botId = providedBotId;
+    if (botId === "asistente-politica") botId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+    if (botId === "archivos-2023") botId = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+
+    // 1. Get source data
+    const { data: source, error: fetchError } = await supabase
+        .from("sources")
+        .select("*")
+        .eq("id", sourceId)
+        .single();
+
+    if (fetchError || !source) throw new Error("Source not found");
+
+    // 2. Set to processing
+    await supabase
+        .from("sources")
+        .update({ status: "processing" })
+        .eq("id", sourceId);
+
+    revalidatePath(`/bot/${providedBotId}`);
+
+    // 3. Re-run ingestion
+    const { success, error } = await _ingestSourceData(source, botId);
+
+    revalidatePath(`/bot/${providedBotId}`);
+    
+    if (!success) throw new Error(error);
+    return { success: true };
 }
 
 export async function deleteSource(sourceId: string, providedBotId: string) {

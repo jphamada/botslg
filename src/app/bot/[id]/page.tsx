@@ -5,6 +5,7 @@ import { ChatInterface } from "@/components/ChatInterface";
 import { DeleteSourceButton } from "@/components/DeleteSourceButton";
 import { EmbedCode } from "@/components/EmbedCode";
 import { BotSettingsForm } from "@/components/BotSettingsForm";
+import { RefreshSourceButton } from "@/components/RefreshSourceButton";
 
 import { supabase } from "@/lib/supabase";
 
@@ -130,8 +131,11 @@ export default async function BotDashboard({
                                                                 <span>{new Date(source.created_at).toLocaleDateString()}</span>
                                                             </div>
                                                         </div>
-                                                        {/* Delete button positioned to the right */}
-                                                        <DeleteSourceButton sourceId={source.id} botId={id} />
+                                                        {/* Actions: Refresh and Delete */}
+                                                        <div className="flex items-center gap-1">
+                                                            <RefreshSourceButton sourceId={source.id} botId={id} type={source.type} />
+                                                            <DeleteSourceButton sourceId={source.id} botId={id} />
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
