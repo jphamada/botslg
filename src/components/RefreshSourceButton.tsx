@@ -13,7 +13,10 @@ export function RefreshSourceButton({ sourceId, botId, type }: { sourceId: strin
     async function handleRefresh() {
         setLoading(true);
         try {
-            await reindexSource(sourceId, botId);
+            const res = await reindexSource(sourceId, botId);
+            if (res && !res.success) {
+                alert(`Error al re-indexar: ${res.error}`);
+            }
         } catch (error: any) {
             alert(`Error al re-indexar: ${error.message}`);
         } finally {

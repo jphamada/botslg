@@ -17,7 +17,11 @@ export function AddSourceForm({ botId }: { botId: string }) {
         formData.append("botId", botId);
 
         try {
-            await processSource(formData);
+            const res = await processSource(formData);
+            if (!res || !res.success) {
+                setError(res?.error || "Ocurrió un error al procesar la fuente.");
+                return;
+            }
             setSuccess(true);
             const form = document.getElementById('add-source-form') as HTMLFormElement;
             form.reset();

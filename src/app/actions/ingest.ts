@@ -19,7 +19,7 @@ export async function processSource(formData: FormData) {
     if (botId === "archivos-2023") botId = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
     if (!url || !botId || !type) {
-        throw new Error("Missing required fields");
+        return { success: false, error: "Missing required fields" };
     }
 
     // Insert initial record in sources table
@@ -36,12 +36,12 @@ export async function processSource(formData: FormData) {
         .single();
 
     if (insertError || !source) {
-        throw new Error(`Error creating source record: ${insertError?.message || "Unknown error"}`);
+        return { success: false, error: `Error creating source record: ${insertError?.message || "Unknown error"}` };
     }
 
     const { success, error } = await _ingestSourceData(source, botId, textData);
     
-    if (!success) throw new Error(error);
+    if (!success) return { success: false, error };
 
     revalidatePath(`/bot/${botId}`);
     return { success: true, sourceId: source.id };
@@ -152,7 +152,7 @@ async function _ingestSourceData(source: any, botId: string, textData?: string) 
 }
 
 export async function reindexSource(sourceId: string, providedBotId: string) {
-    if (!sourceId || !providedBotId) throw new Error("Missing parameters");
+    if (!sourceId || !providedBotId) return { success: false, error: "Missing parameters" };
 
     let botId = providedBotId;
     if (botId === "asistente-politica") botId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
@@ -165,7 +165,7 @@ export async function reindexSource(sourceId: string, providedBotId: string) {
         .eq("id", sourceId)
         .single();
 
-    if (fetchError || !source) throw new Error("Source not found");
+    if (fetchError || !source) return { success: false, error: "Source not found" };
 
     // 2. Set to processing
     await supabase
@@ -180,12 +180,12 @@ export async function reindexSource(sourceId: string, providedBotId: string) {
 
     revalidatePath(`/bot/${providedBotId}`);
     
-    if (!success) throw new Error(error);
+    if (!success) return { success: false, error };
     return { success: true };
 }
 
 export async function deleteSource(sourceId: string, providedBotId: string) {
-    if (!sourceId || !providedBotId) throw new Error("Missing parameters");
+    if (!sourceId || !providedBotId) return { success: false, error: "Missing parameters" };
 
     let botId = providedBotId;
     if (botId === "asistente-politica") botId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
@@ -208,12 +208,12 @@ export async function deleteSource(sourceId: string, providedBotId: string) {
             .delete()
             .eq("id", sourceId);
 
-        if (error) throw new Error(error.message);
+        if (error) return { success: false, error: error.message };
 
         revalidatePath(`/bot/${providedBotId}`);
         return { success: true };
     } catch (error: any) {
         console.error("Delete source error:", error);
-        throw new Error(error.message || "Failed to delete source");
+        return { success: false, error: error.message || "Failed to delete source" };
     }
 }

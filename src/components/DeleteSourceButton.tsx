@@ -14,7 +14,10 @@ export function DeleteSourceButton({ sourceId, botId }: { sourceId: string, botI
 
         setLoading(true);
         try {
-            await deleteSource(sourceId, botId);
+            const res = await deleteSource(sourceId, botId);
+            if (res && !res.success) {
+                alert(`Error al eliminar la fuente: ${res.error}`);
+            }
             // Revalidation happens on the server, screen will auto update
         } catch (error: any) {
             alert(`Error al eliminar la fuente: ${error.message}`);
